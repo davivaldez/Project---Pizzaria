@@ -1,18 +1,49 @@
-import {fornecedorIdNome} from "./fornecedor.js";
+/////////////////////////////////////////////////////////////////////////////
+// FOREIGN KEY FORNECEDOR
+let fornecedoresFranquias = [];
+let fornecedorIdNome = [];
 
+//Função para adicionar o nome do fornecedor como uma opção para selecionar
 function displayProvider() {
   const provider = document.getElementById("name-franchise-provider");
   fornecedorIdNome.forEach((f) => {
     const option = document.createElement("option");
     option.textContent = f.nome;
     option.value = f.id;
-    if (provider !== null) {
     provider.appendChild(option);
-    }
   })
 }
 
-export {displayProvider};
+//Função para realizar uma solicitação GET conseguir pegar o ID e nome de cada fornecedor
+function displayProvidersFranchises() {
+
+  //Carregando fornecedores do servidor ao carregar a página (solicitação GET)
+  fetch("http://localhost:3000/fornecedores")
+    //Obtendo a promise da solicitação HTTP e convertendo ela em um objeto JavaScript facilitando a manipulação dos dados
+    .then((response) => response.json())
+    //Manipulando os dados obtidos atribuindo a eles à variável 'fornecedoresFranquias' e adicionando eles na tabela
+    .then((data) => {
+      fornecedoresFranquias = data;
+
+      //Iterando pelos fornecedores para adicionar cada um na tabela com seus dados
+      fornecedoresFranquias.forEach((fornecedor) => {
+        fornecedorIdNome.push({id: fornecedor.id_fornecedor, nome: fornecedor.nome_fornecedor});        
+      })
+      displayProvider();
+    })
+  }
+
+//Realizando solicitação GET para obter os dados dos fornecedores
+  fetch("http://localhost:3000/fornecedores")
+  //Convertendo a 'response' para json
+  .then((response) => response.json())
+  //Manipulando os dados convertidos
+  .then((data) => {
+    fornecedoresFranquias = data;
+    displayProvidersFranchises();
+  })
+  .catch((err) => console.error("Erro: ", err));
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
  //Array para armazenar franquias do servidor
  let franquias = [];
@@ -22,7 +53,7 @@ export {displayProvider};
 
  //Função para exibir os franquias na tabela
  function displayFranchises() {
-   const tbody = document.getElementById("tbody");
+   const tbody = document.getElementById("tbody-franquia");
 
    //Deixando o tdbody vazio para carregar os franquias que estão salvos em 'let franquias = []'
    tbody.innerHTML = "";

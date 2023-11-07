@@ -1,16 +1,12 @@
-import {displayProvider} from "./franquia.js";
-
 //Array para armazenar fornecedores do servidor
 let fornecedores = [];
 
 //Fornecedor em edição (após o botão alterar ser acionado, o valor dentro dessa variável irá receber o ID para chamar o PUT)
 let fornecedorEdicao = null;
 
-let fornecedorIdNome = [];
-
 //Função para exibir os fornecedores na tabela
 function displayProviders() {
-  const tbody = document.getElementById("tbody");
+  const tbody = document.getElementById("tbody-fornecedor");
 
   //Deixando o tdbody vazio para carregar os fornecedores que estão salvos em 'let fornecedores = []'
   tbody.innerHTML = "";
@@ -38,12 +34,9 @@ function displayProviders() {
           <button class="btn btn-outline-danger" id="btn-delete" onclick="deleteProvider(${fornecedor.id_fornecedor})">Remover</button>
         </td>`
 
-        fornecedorIdNome.push({id: fornecedor.id_fornecedor, nome: fornecedor.nome_fornecedor});
-
         //Adicionando o elemento tr no tbody
         tbody.appendChild(tr);
       })
-      displayProvider();
     })
   }
 
@@ -164,5 +157,3 @@ fetch("http://localhost:3000/fornecedores")
     displayProviders();
   })
   .catch((err) => console.error("Erro: ", err));
-
-export {fornecedorIdNome};
