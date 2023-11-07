@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="./css/styleFornecedor.css" />
+    <title>Pizzaria - Fornecedor</title>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <a href="./saudacoes.html"><img src="./img/logo.png" alt="pizza" class="img-logo" /></a>
+
+        <nav class="navbar">
+          <a href="./usuario.html" class="navbar-item">Usuário</a>
+          <a href="./funcionario.html" class="navbar-item">Funcionário</a>
+          <a href="./ingredientes.html" class="navbar-item">Ingredientes</a>
+          <a href="./tipos.html" class="navbar-item">Tipo de Ingrediente</a>
+          <a href="./lote.html" class="navbar-item">Lote</a>
+          <a href="./fornecedor.html" class="navbar-item">Fornecedor</a>
+          <a href="./pizza.html" class="navbar-item">Pizza</a>
+          <a href="./franquia.html" class="navbar-item">Franquia</a>
+        </nav>
+      </header>
+
+      <main class="main">
+        <section class="section-register">
+          <form action="" id="forms">
+            <div class="section-form">
+              <label for="name-provider">Nome:</label>
+              <input type="text" id="name-provider" name="name-provider" maxlength="100" required>
+            </div>
+
+            <div class="section-form">
+              <label for="cnpj-provider">CNPJ:</label>
+              <input type="text" id="cnpj-provider" name="cnpj-provider" maxlength="18" placeholder="XX.XXX.XXX/0001-XX" required>
+            </div>
+            
+            <div class="section-form">
+              <label for="phone-provider">Telefone:</label>
+              <input type="text" id="phone-provider" name="phone-provider" maxlength="20" placeholder="(11) 99999-9999" required>
+            </div>
+
+            <div class="section-form">
+              <label for="email-provider">E-mail:</label>
+              <input type="email" id="email-provider" name="email-provider" maxlength="200" placeholder="avengers@email.com" required/>
+            </div>
+
+            <div class="section-btn">
+              <button class="btn-register" type="submit">Cadastrar</button>
+              <button id="btn-cancel" class="btn-register">Cancelar</button>
+            </div>
+          </form>
+
+          <img src="./img/logo-pizza.png" alt="Logo" class="section-logo" />
+          <span id="provider">Fornecedor</span>
+          <span class="background-provider"></span>
+        </section>
+
+        <section class="section-table table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Nome</th>
+                <th>CNPJ</th>
+                <th>Telefone</th>
+                <th>E-mail</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+  
+            </tbody>
+          </table>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-copyright">
+          <p>&copy;</p>
+          <p class="footer-paragraph">Avengers</p>
+        </div>
+        <p class="footer-paragraph">Todos os direitos reservados.</p>
+      </footer>
+    </div>  
+    
+    <script type="module" src="../Pizzaria/Js/Frontend/fornecedor.js"></script>
+  </body>
+</html>
