@@ -1,34 +1,37 @@
 document.addEventListener("DOMContentLoaded", carregaUsuarios);
+const urlBaseUsuario = "http://localhost:3000/usuarios";
 
-const btnCadastro = document.getElementById("btn-usuario-cadastro");
-btnCadastro.addEventListener("click", clickBtnCadastro);
+const btnCadastroUsuario = document.getElementById("btn-usuario-cadastro");
+btnCadastroUsuario.addEventListener("click", clickBtnCadastroUsuario);
 
-const btnCancelar = document.getElementById("btn-cancel");
-btnCancelar.addEventListener("click", cancelarEdicao);
+const btnCancelarUsuario = document.getElementById("btn-usuario-cancelar");
+btnCancelarUsuario.addEventListener("click", cancelarEdicaoUsuario);
 
-const urlBase = "http://localhost:3000/usuarios";
-const tbody = document.getElementById("tbody-usuario");
 
-const inputEmail = document.getElementById("input-usuario-email");
-const inputLogin = document.getElementById("input-usuario-login");
-const inputSenha = document.getElementById("input-usuario-senha");
+
+const inputEmailUsuario = document.getElementById("input-usuario-email");
+const inputLoginUsuario = document.getElementById("input-usuario-login");
+const inputSenhaUsuario = document.getElementById("input-usuario-senha");
+
+const tbodyUsuario = document.getElementById("tbody-usuario");
 
 let usuarios = [];
-
 let editandoUsuario = false;
 let idUsuarioAtualizar;
 
 function carregaUsuarios() {
   usuarios = [];
+  tbodyUsuario.innerHTML = "";
 
-  fetch(urlBase, { method: "GET" })
+  fetch(urlBaseUsuario, { method: "GET" })
   .then((response) => response.json())
   .then((data) => {
-    tbody.innerHTML = "";
+    if (data.error)
+      throw new Error(data.error);
     
     data.forEach(usuario => {
       usuarios.push(usuario);
-      criarLinha(usuario);
+      criarLinhaUsuario(usuario);
     });
   })
   .catch((err) => {
@@ -37,39 +40,46 @@ function carregaUsuarios() {
   })
 }
 
-function criarLinha(usuario) {
+function criarLinhaUsuario(usuario) {
   let tr = document.createElement("tr");
+  tr.id = `tr-usuario-${usuario.id}`;
 
   tr.innerHTML = 
- `<td>${usuario.id_usuario}</td>
-  <td>${usuario.email_usuario}</td>
-  <td>${usuario.login_usuario}</td>
-  <td>${usuario.senha_usuario}</td>
+ `<td>${usuario.id}</td>
+  <td>${usuario.email}</td>
+  <td>${usuario.login}</td>
+  <td>${usuario.senha}</td>
   <td class="td-buttons">
-    <button class="btn btn-outline-success" id="btn-update" onclick="editarUsuario(${usuario.id_usuario})">Alterar</button>
-    <button class="btn btn-outline-danger" id="btn-delete" onclick="deletarUsuario(${usuario.id_usuario})">Remover</button>
+    <button class="btn btn-outline-success" id="btn-update" onclick="editarUsuario(${usuario.id})">Alterar</button>
+    <button class="btn btn-outline-danger" id="btn-delete" onclick="deletarUsuario(${usuario.id})">Remover</button>
   </td>`;
 
-  tbody.appendChild(tr);
+  tbodyUsuario.appendChild(tr);
 }
 
 function editarUsuario(id) {
   editandoUsuario = true;
   idUsuarioAtualizar = id;
 
-  let usuario = usuarios.find((u) => u.id_usuario === id);
+  let usuario = usuarios.find((u) => u.id === id);
 
-  inputEmail.value = usuario.email_usuario;
-  inputLogin.value = usuario.login_usuario;
-  inputSenha.value = usuario.senha_usuario;
+  inputEmailUsuario.value = usuario.email;
+  inputLoginUsuario.value = usuario.login;
+  inputSenhaUsuario.value = usuario.senha;
 
-  btnCadastro.innerText = "Atualizar";
-  btnCancelar.style.display = "inline-block";
+  btnCadastroUsuario.innerText = "Atualizar";
+  btnCancelarUsuario.style.display = "inline-block";
 }
 
 function deletarUsuario(id) {
-  fetch(`${urlBase}/${id}`, { method: "DELETE"})
-  .then(() => removerUsuarioDaTela(id))
+  fetch(`${urlBaseUsuario}/${id}`, { method: "DELETE"})
+  .then((response) => response.json())
+  .then((data) => { 
+    if (data.error)
+      throw new Error(data.error);
+    else
+      removerUsuarioDaTela(id)
+  })
   .catch((err) => {
     alert("Ocorreu um erro ao deletar o usuário. Veja o console para mais informações.");
     console.error(err.message);
@@ -77,51 +87,35 @@ function deletarUsuario(id) {
 }
 
 function removerUsuarioDaTela(id) {
-  usuarios = usuarios.filter((usuario) => usuario.id_usuario !== id);
-
-  carregaUsuarios();
+  document.getElementById(`tr-usuario-${id}`).remove();
+  usuarios = usuarios.filter((usuario) => usuario.id !== id);
 }
 
-function clickBtnCadastro() {
-  let email = inputEmail.value;
-  let login = inputLogin.value;
-  let senha = inputSenha.value;
+function clickBtnCadastroUsuario() {
+  let email = inputEmailUsuario.value;
+  let login = inputLoginUsuario.value;
+  let senha = inputSenhaUsuario.value;
 
   if (!email || !login || !senha) {
     alert("Preencha todos os campos!");
-
     return;
   }
 
   let usuario = {
+    id: idUsuarioAtualizar,
     email: email,
     login: login,
     senha: senha
   }
 
-  if (verificarLogin(usuario)) {
-    return;
-  }
-
-  if (editandoUsuario) {
+  if (editandoUsuario)
     atualizarUsuario(usuario);
-  }
-
-  else {
+  else
     inserirUsuario(usuario);
-  }
-}
-
-function verificarLogin(usuario) {
-  usuarios.forEach((u) => {
-    if (u.login_usuario === usuario.login) {
-      alert("Já existe um usuário com esse login!");
-    }
-  });
 }
 
 function atualizarUsuario(usuario) {
-  fetch(`${urlBase}/${idUsuarioAtualizar}`, {
+  fetch(`${urlBaseUsuario}/${idUsuarioAtualizar}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json"
@@ -130,18 +124,16 @@ function atualizarUsuario(usuario) {
   })
   .then((response) => response.json())
   .then((data) => {
+    if (data.error)
+      throw new Error(data.error);
+
     editandoUsuario = false;
 
-    let i = usuarios.findIndex((u) => u.id_usuario === idUsuarioAtualizar);
-    usuarios[i] = data;
+    btnCadastroUsuario.innerText = "Cadastrar";
+    btnCancelarUsuario.style.display = "none";
 
-    limparInputs();
-
-    btnCadastro.innerText = "Cadastrar";
-    btnCancelar.style.display = "none";
-
+    limparInputsUsuario();
     carregaUsuarios();
-
   })
   .catch((err) => {
     alert("Ocorreu um erro ao atualizar o usuário. Veja o console para mais informações.");
@@ -150,7 +142,7 @@ function atualizarUsuario(usuario) {
 }
 
 function inserirUsuario(usuario) {
-  fetch(urlBase, {
+  fetch(urlBaseUsuario, {
      method: "POST",
      headers: {
       "Content-Type": "application/json"
@@ -159,10 +151,10 @@ function inserirUsuario(usuario) {
     })
     .then((response) => response.json())
     .then((data) => {
-      usuarios.push(data);
+      if (data.error)
+        throw new Error(data.error);
 
-      limparInputs();
-
+      limparInputsUsuario();
       carregaUsuarios();
     })
     .catch((err) => {
@@ -171,17 +163,17 @@ function inserirUsuario(usuario) {
     })
 }
 
-function cancelarEdicao() {
+function cancelarEdicaoUsuario() {
   editandoUsuario = false;
 
-  limparInputs();
+  limparInputsUsuario();
 
-  btnCadastro.innerText = "Cadastrar";
-  btnCancelar.style.display = "none";
+  btnCadastroUsuario.innerText = "Cadastrar";
+  btnCancelarUsuario.style.display = "none";
 }
 
-function limparInputs() {
-  inputEmail.value = "";
-  inputLogin.value = "";
-  inputSenha.value = "";
+function limparInputsUsuario() {
+  inputEmailUsuario.value = "";
+  inputLoginUsuario.value = "";
+  inputSenhaUsuario.value = "";
 }

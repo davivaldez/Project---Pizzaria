@@ -1,36 +1,36 @@
 document.addEventListener("DOMContentLoaded", carregaFornecedores);
+const urlBaseFornecedor = "http://localhost:3000/fornecedores";
 
-const btnCadastro = document.getElementById("btn-fornecedor-cadastro");
-btnCadastro.addEventListener("click", clickBtnCadastro);
+const btnCadastroFornecedor = document.getElementById("btn-fornecedor-cadastro");
+btnCadastroFornecedor.addEventListener("click", clickBtnCadastroFornecedor);
 
-const btnCancel = document.getElementById("btn-cancel");
-btnCancel.addEventListener("click", cancelarEdicao);
+const btnCancelarFornecedor = document.getElementById("btn-fornecedor-cancelar");
+btnCancelarFornecedor.addEventListener("click", cancelarEdicaoFornecedor);
 
-const urlBase = "http://localhost:3000/fornecedores";
-const tbody = document.getElementById("tbody-fornecedor");
+const inputNomeFornecedor = document.getElementById("input-fornecedor-nome");
+const inputCnpjFornecedor = document.getElementById("input-fornecedor-cnpj");
+const inputTelefoneFornecedor = document.getElementById("input-fornecedor-telefone");
+const inputEmailFornecedor = document.getElementById("input-fornecedor-email");
 
-const inputNome = document.getElementById("input-fornecedor-nome");
-const inputCnpj = document.getElementById("input-fornecedor-cnpj");
-const inputTelefone = document.getElementById("input-fornecedor-telefone");
-const inputEmail = document.getElementById("input-fornecedor-email");
+const tbodyFornecedor = document.getElementById("tbody-fornecedor");
 
 let fornecedores = [];
-
 let editandoFornecedor = false;
 let idFornecedorAtualizar;
 
-// Função para buscar fornecedores
 function carregaFornecedores() {
   fornecedores = [];
+  tbodyFornecedor.innerHTML = "";
 
-  fetch(urlBase, { method: "GET" })
+  fetch(urlBaseFornecedor, { method: "GET" })
   .then((response) => response.json())
   .then((data) => {
-    tbody.innerHTML = "";
+    if (data.error)
+      throw new Error(data.error);
 
     data.forEach(fornecedor => {
       fornecedores.push(fornecedor);
-      criarLinha(fornecedor);
+      criarLinhaFornecedor(fornecedor);
     });
   })
   .catch((err) => {
@@ -39,46 +39,50 @@ function carregaFornecedores() {
   });
 }
 
-// Criar linha 
-function criarLinha(fornecedor) {
+function criarLinhaFornecedor(fornecedor) {
   let tr = document.createElement("tr");
+  tr.id = `tr-fornecedor-${fornecedor.id}`;
 
   tr.innerHTML =
     `
-    <td>${fornecedor.id_fornecedor}</td>
-    <td>${fornecedor.nome_fornecedor}</td>
-    <td>${fornecedor.cnpj_fornecedor}</td>
-    <td>${fornecedor.telefone_fornecedor}</td>
-    <td>${fornecedor.email_fornecedor}</td>
+    <td>${fornecedor.id}</td>
+    <td>${fornecedor.nome}</td>
+    <td>${fornecedor.cnpj}</td>
+    <td>${fornecedor.telefone}</td>
+    <td>${fornecedor.email}</td>
     <td class="td-buttons">
-      <button class="btn btn-outline-success" id="btn-update" onclick="editarFornecedor(${fornecedor.id_fornecedor})">Alterar</button>
-      <button class="btn btn-outline-danger" id="btn-delete" onclick="deletarFornecedor(${fornecedor.id_fornecedor})">Remover</button>
+      <button class="btn btn-outline-success" id="btn-update" onclick="editarFornecedor(${fornecedor.id})">Alterar</button>
+      <button class="btn btn-outline-danger" id="btn-delete" onclick="deletarFornecedor(${fornecedor.id})">Remover</button>
     </td>
     `;
 
-  //Adicionando o elemento tr no tbody
-  tbody.appendChild(tr);
+  tbodyFornecedor.appendChild(tr);
 }
 
 function editarFornecedor(id) {
   editandoFornecedor = true;
   idFornecedorAtualizar = id;
 
-  let fornecedor = fornecedores.find(f => f.id_fornecedor === id);
+  let fornecedor = fornecedores.find(f => f.id === id);
 
-  inputNome.value = fornecedor.nome_fornecedor;
-  inputCnpj.value = fornecedor.cnpj_fornecedor;
-  inputTelefone.value = fornecedor.telefone_fornecedor;
-  inputEmail.value = fornecedor.email_fornecedor;
+  inputNomeFornecedor.value = fornecedor.nome;
+  inputCnpjFornecedor.value = fornecedor.cnpj;
+  inputTelefoneFornecedor.value = fornecedor.telefone;
+  inputEmailFornecedor.value = fornecedor.email;
 
-  btnCancel.style.display = "inline-block";
-  btnCadastro.innerText = "Atualizar";
+  btnCancelarFornecedor.style.display = "inline-block";
+  btnCadastroFornecedor.innerText = "Atualizar";
 }
 
-//Função para deletar fornecedores
 function deletarFornecedor(id) {
-  fetch(`${urlBase}/${id}`, { method: "DELETE" })
-  .then(() => removerFornecedorDaTela(id))
+  fetch(`${urlBaseFornecedor}/${id}`, { method: "DELETE" })
+  .then((response) => response.json())
+  .then((data) => {
+    if (data.error)
+      throw new Error(data.error);
+    else
+      removerFornecedorDaTela(id);
+  })
   .catch((err) => {
     alert("Ocorreu um erro ao deletar o fornecedor. Veja o console para mais informações.");
     console.error(err.message);
@@ -86,32 +90,27 @@ function deletarFornecedor(id) {
 }
 
 function removerFornecedorDaTela(id) {
-  fornecedores = fornecedores.filter(fornecedor => fornecedor.id_fornecedor !== id);
-
-  carregaFornecedores();
+  document.getElementById(`tr-fornecedor-${id}`).remove();
+  fornecedores = fornecedores.filter(fornecedor => fornecedor.id !== id);
 }
 
-function clickBtnCadastro() {
-  let nome = inputNome.value;
-  let cnpj = inputCnpj.value;
-  let telefone = inputTelefone.value;
-  let email = inputEmail.value;
+function clickBtnCadastroFornecedor() {
+  let nome = inputNomeFornecedor.value;
+  let cnpj = inputCnpjFornecedor.value;
+  let telefone = inputTelefoneFornecedor.value;
+  let email = inputEmailFornecedor.value;
 
   if (!nome || !cnpj || !telefone || !email) {
     alert("Preencha todos os campos!");
-
     return;
   }
 
   let fornecedor = {
+    id: idFornecedorAtualizar,
     nome: nome,
     cnpj: cnpj,
     telefone: telefone,
     email: email
-  }
-
-  if (verificarCnpj(fornecedor)) {
-    return;
   }
 
   if (editandoFornecedor)
@@ -120,16 +119,8 @@ function clickBtnCadastro() {
     inserirFornecedor(fornecedor);
 }
 
-function verificarCnpj(fornecedor) {
-  fornecedores.forEach((f) => {
-    if (f.cnpj_fornecedor === fornecedor.cnpj) {
-      alert("Já existe um fornecedor com esse CNPJ!");
-    }
-  });
-}
-
 function atualizarFornecedor(fornecedor) {
-  fetch(`${urlBase}/${idFornecedorAtualizar}`, {
+  fetch(`${urlBaseFornecedor}/${idFornecedorAtualizar}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json"
@@ -137,17 +128,16 @@ function atualizarFornecedor(fornecedor) {
     body: JSON.stringify(fornecedor)
   })
   .then((response) => response.json())
-  .then((data) => {
+  .then((data) => { 
+    if (data.error)
+      throw new Error(data.error);
+  
     editandoFornecedor = false;
+    
+    btnCancelarFornecedor.style.display = "none";
+    btnCadastroFornecedor.innerText = "Cadastrar";
 
-    let i = fornecedores.findIndex(f => f.id === idFornecedorAtualizar);
-    fornecedores[i] = data;
-
-    limparInputs();
-
-    btnCancel.style.display = "none";
-    btnCadastro.innerText = "Cadastrar";
-
+    limparInputsFornecedor();
     carregaFornecedores();
   })
   .catch((err) => {
@@ -157,7 +147,7 @@ function atualizarFornecedor(fornecedor) {
 }
 
 function inserirFornecedor(fornecedor) {
-  fetch(urlBase, {
+  fetch(urlBaseFornecedor, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -166,10 +156,10 @@ function inserirFornecedor(fornecedor) {
   })
   .then((response) => response.json())
   .then((data) => {
-    fornecedores.push(data);
+    if (data.error)
+      throw new Error(data.error);
 
-    limparInputs();
-
+    limparInputsFornecedor();
     carregaFornecedores();
   })
   .catch((err) => {
@@ -178,18 +168,18 @@ function inserirFornecedor(fornecedor) {
   });
 }
 
-function cancelarEdicao() {
+function cancelarEdicaoFornecedor() {
   editandoFornecedor = false;
-
-  limparInputs();
   
-  btnCadastro.innerText = "Cadastrar";
-  btnCancel.style.display = "none";
+  btnCadastroFornecedor.innerText = "Cadastrar";
+  btnCancelarFornecedor.style.display = "none";
+
+  limparInputsFornecedor();
 }
 
-function limparInputs() {
-  inputNome.value = "";
-  inputCnpj.value = "";
-  inputTelefone.value = "";
-  inputEmail.value = "";
+function limparInputsFornecedor() {
+  inputNomeFornecedor.value = "";
+  inputCnpjFornecedor.value = "";
+  inputTelefoneFornecedor.value = "";
+  inputEmailFornecedor.value = "";
 }

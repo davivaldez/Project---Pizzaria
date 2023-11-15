@@ -1,276 +1,230 @@
 document.addEventListener("DOMContentLoaded", carregaFranquias);
-
-/////////////////////////////////////////////////////////////////////////////
-
 const urlFornecedor = "http://localhost:3000/fornecedores";
+const urlBaseFranquia = "http://localhost:3000/franquias";
 
-const selectFranquiaFornecedor = document.getElementById("select-franquia-fornecedor");
+const btnCadastroFranquia = document.getElementById("btn-franquia-cadastro");
+btnCadastroFranquia.addEventListener("click", clickBtnCadastroFranquia);
+
+const btnCancelarFranquia = document.getElementById("btn-franquia-cancelar");
+btnCancelarFranquia.addEventListener("click", cancelarEdicaoFranquia);
+
+const inputNomeFranquia = document.getElementById("input-franquia-nome");
+const inputEnderecoFranquia = document.getElementById("input-franquia-endereco");
+const selectFornecedorFranquia = document.getElementById("select-franquia-fornecedor");
+
+const selectFornecedor = document.getElementById("select-franquia-fornecedor");
+
+const tbodyFranquia = document.getElementById("tbody-franquia");
 
 let fornecedorIdNome = [];
+let franquias = [];
+let editandoFranquia = false;
+let idFranquiaAtualizar;
 
-//FOREIGN KEY FORNECEDOR
 function carregaFranquiaFornecedor() {
   fornecedorIdNome = [];
+  limparSelectFornecedor();
 
   fetch(urlFornecedor, { method: "GET"})
   .then((response) => response.json())
   .then((data) => {
+    if (data.error)
+      throw new Error(data.error);
+    else
+    {
       data.forEach((fornecedor) => {
-        fornecedorIdNome.push({
-          id: fornecedor.id_fornecedor,
-          nome: fornecedor.nome_fornecedor
-        })
-      })
-
-      carregaFornecedor();
+        fornecedorIdNome.push(fornecedor);
+        adicionaFornecedor(fornecedor);
+      });
+    }
   })
   .catch((err) => {
-    alert("Ocorreu um erro ao buscar os fornecedores no arquivo franquia. Veja o console para mais informações.");
+    alert("Ocorreu um erro ao buscar fornecedores. Veja o console para mais informações.");
     console.error(err.message);
   })
 }
 
-function carregaFornecedor() {
-  fornecedorIdNome.forEach((f) => {
-    let option = document.createElement("option");
+function adicionaFornecedor(fornecedor) {
+  let option = document.createElement("option");
 
-    option.value = f.id;
-    option.textContent = f.nome;
+  option.value = fornecedor.id;
+  option.textContent = fornecedor.nome;
 
-    if (selectFranquiaFornecedor !== null) {
-      selectFranquiaFornecedor.appendChild(option);
-      }
-  })
+  selectFornecedor.appendChild(option);
 }
 
-/////////////////////////////////////////////////////////////////////////////
+function limparSelectFornecedor() {
+  selectFornecedor.innerHTML = `<option id="option-franquia-fornecedor" value="none" disabled selected>Selecione uma opção</option>`;
+}
 
 function carregaFranquias() {
   carregaFranquiaFornecedor();
+
+  franquias = [];
+  tbodyFranquia.innerHTML = "";
+
+  fetch(urlBaseFranquia, { method: "GET"})
+  .then((response) => response.json())
+  .then((data) => {
+    if (data.error)
+      throw new Error(data.error);
+
+    data.forEach((franquia) => {
+      franquias.push(franquia);
+      criarLinhaFranquia(franquia);
+    })
+  })
+  .catch((err) => {
+    alert("Ocorreu um erro ao buscar as franquias. Veja o console para mais informações.");
+    console.error(err.message);
+  })
 }
 
+function criarLinhaFranquia(franquia) {
+  let tr = document.createElement("tr");
+  tr.id = `tr-franquia-${franquia.id}`;
 
+  tr.innerHTML =
+` <td>${franquia.id}</td>
+  <td>${franquia.nome}</td>
+  <td>${franquia.endereco}</td>
+  <td>${franquia.id_fornecedor}</td>
+  <td class="td-buttons">
+  <button class="btn btn-outline-success" id="btn-update" onclick="editarFranquia(${franquia.id})">Alterar</button>
+  <button class="btn btn-outline-danger" id="btn-delete" onclick="deletarFranquia(${franquia.id})">Remover</button>
+  </td>`;
 
+  tbodyFranquia.appendChild(tr);
+}
 
+function editarFranquia(id) {
+  editandoFranquia = true;
+  idFranquiaAtualizar = id;
 
+  let franquia = franquias.find((f) => f.id === id);
 
+  inputNomeFranquia.value = franquia.nome;
+  inputEnderecoFranquia.value = franquia.endereco;
+  selectFornecedorFranquia.value = franquia.id_fornecedor;
 
+  btnCadastroFranquia.innerText = "Atualizar";
+  btnCancelarFranquia.style.display = "inline-block";
+}
 
+function deletarFranquia(id) {
+  fetch(`${urlBaseFranquia}/${id}`, { method: "DELETE" })
+  .then((response) => response.json())
+  .then((data) => {
+    if (data.error)
+      throw new Error(data.error);
+    else
+      removerFranquiaDaTela(id);
+  })
+  .catch((err) => {
+    alert("Ocorreu um erro ao deletar a franquia. Veja o console para mais informações.");
+    console.error(err.message);
+  });
+}
 
+function removerFranquiaDaTela(id) {
+  document.getElementById(`tr-franquia-${id}`).remove();
+  franquias = franquias.filter((franquia) => franquia.id !== id);
+}
 
+function clickBtnCadastroFranquia() {
+  let nome = inputNomeFranquia.value;
+  let endereco = inputEnderecoFranquia.value;
+  let fornecedor = selectFornecedorFranquia.value;
 
+  if (!nome || !endereco || fornecedor === "none") {
+    alert("Preencha todos os campos!");
+    return;
+  }
 
+  let franquia = {
+    id: idFranquiaAtualizar,
+    nome: nome,
+    endereco: endereco,
+    fornecedor: fornecedor
+  }
 
+  if (editandoFranquia)
+    atualizarFranquia(franquia);
+  else
+    inserirFranquia(franquia);
+}
 
+function atualizarFranquia(franquia) {
+  fetch(`${urlBaseFranquia}/${idFranquiaAtualizar}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(franquia)
+  })
+  .then((response) => response.json())
+  .then((data) => {
+    if (data.error)
+      throw new Error(data.error);
+  
+    editandoFranquia = false;
+    
+    btnCadastroFranquia.innerText = "Cadastrar";
+    btnCancelarFranquia.style.display = "none";
 
+    limparInputsFranquia();
+    limparSelectFranquia();
+    carregaFranquias();
+  })
+  .catch((err) => {
+    alert("Ocorreu um erro ao atualizar a franquia. Veja o console para mais informações.");
+    console.error(err.message);
+  });
+}
 
+function inserirFranquia(franquia) {
+  fetch(urlBaseFranquia, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(franquia) 
+  })
+  .then((response) => response.json())
+  .then((data) => {
+    if (data.error)
+      throw new Error(data.error);
 
+    limparInputsFranquia();
+    limparSelectFranquia();
+    carregaFranquias();
+  })
+  .catch((err) => {
+    alert("Ocorreu um erro ao inserir a franquia. Veja o console para mais informações.");
+    console.error(err.message);
+  });
+}
 
+function cancelarEdicaoFranquia() {
+  editandoFranquia = false;
 
+  btnCadastroFranquia.innerText = "Cadastrar";
+  btnCancelarFranquia.style.display = "none";
+  
+  limparInputsFranquia();
+  limparSelectFranquia();
+}
 
+function limparInputsFranquia() {
+  inputNomeFranquia.value = "";
+  inputEnderecoFranquia.value = "";
+}
 
+function limparSelectFranquia() {
+  selectFornecedorFranquia.value = "";
+  
+  let optionFranquia = document.getElementById("option-franquia-fornecedor");
 
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-// FOREIGN KEY FORNECEDOR
-// let fornecedoresFranquias = [];
-// let fornecedorIdNome = [];
-
-// //Função para adicionar o nome do fornecedor como uma opção para selecionar
-// function displayProvider() {
-//   const provider = document.getElementById("name-franchise-provider");
-//   fornecedorIdNome.forEach((f) => {
-//     const option = document.createElement("option");
-//     option.textContent = f.nome;
-//     option.value = f.id;
-//     provider.appendChild(option);
-//   })
-// }
-
-// //Função para realizar uma solicitação GET conseguir pegar o ID e nome de cada fornecedor
-// function displayProvidersFranchises() {
-
-//   //Carregando fornecedores do servidor ao carregar a página (solicitação GET)
-//   fetch("http://localhost:3000/fornecedores")
-//     //Obtendo a promise da solicitação HTTP e convertendo ela em um objeto JavaScript facilitando a manipulação dos dados
-//     .then((response) => response.json())
-//     //Manipulando os dados obtidos atribuindo a eles à variável 'fornecedoresFranquias' e adicionando eles na tabela
-//     .then((data) => {
-//       fornecedoresFranquias = data;
-
-//       //Iterando pelos fornecedores para adicionar cada um na tabela com seus dados
-//       fornecedoresFranquias.forEach((fornecedor) => {
-//         fornecedorIdNome.push({id: fornecedor.id_fornecedor, nome: fornecedor.nome_fornecedor});        
-//       })
-//       displayProvider();
-//     })
-//   }
-
-// //Realizando solicitação GET para obter os dados dos fornecedores
-//   fetch("http://localhost:3000/fornecedores")
-//   //Convertendo a 'response' para json
-//   .then((response) => response.json())
-//   //Manipulando os dados convertidos
-//   .then((data) => {
-//     fornecedoresFranquias = data;
-//     displayProvidersFranchises();
-//   })
-//   .catch((err) => console.error("Erro: ", err));
-// //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//  //Array para armazenar franquias do servidor
-//  let franquias = [];
-
-//  //Franquia em edição (após o botão alterar ser acionado, o valor dentro dessa variável irá receber o ID para chamar o PUT)
-//  let franquiaEdicao = null;
-
-//  //Função para exibir os franquias na tabela
-//  function displayFranchises() {
-//    const tbody = document.getElementById("tbody-franquia");
-
-//    //Deixando o tdbody vazio para carregar os franquias que estão salvos em 'let franquias = []'
-//    tbody.innerHTML = "";
-
-//    //Carregando franquias do servidor ao carregar a página (solicitação GET)
-//    fetch("http://localhost:3000/franquias")
-//      //Obtendo a promise da solicitação HTTP e convertendo ela em um objeto JavaScript facilitando a manipulação dos dados
-//      .then((response) => response.json())
-//      //Manipulando os dados obtidos atribuindo a eles à variável 'franquias' e adicionando eles na tabela
-//      .then((data) => {
-//        franquias = data;
-
-//        //Iterando pelos franquias para adicionar cada um na tabela com seus dados
-//        franquias.forEach((franquia) => {
-//          const tr = document.createElement("tr");
-//          tr.innerHTML =
-//          `<td>${franquia.id_franquia}</td>
-//          <td>${franquia.nome_franquia}</td>
-//          <td>${franquia.endereco_franquia}</td>
-//          <td>${franquia.fk_fornecedor}</td>
-//          <td class="td-buttons">
-//            <button class="btn btn-outline-success" id="btn-update" onclick="editFranchise(${franquia.id_franquia})">Alterar</button>
-//            <button class="btn btn-outline-danger" id="btn-delete" onclick="deleteFranchise(${franquia.id_franquia})">Remover</button>
-//          </td>`
-
-//          //Adicionando o elemento tr no tbody
-//          tbody.appendChild(tr);
-//        })
-//      })
-//    }
-
-//  //Função para editar franquias
-//  function editFranchise(id) {
-//    franquiaEdicao = id;
-
-//    //Obtendo todos os dados do franquia pelo ID verificando se cada franquia tem o ID igual ao que foi passado no parâmetro
-//    const franquia = franquias.find((f) => f.id_franquia === id);
-
-//    document.getElementById("name-franchise").value = franquia.nome_franquia;
-//    document.getElementById("address-franchise").value = franquia.endereco_franquia
-//    document.getElementById("name-franchise-provider").value = franquia.fk_fornecedor;
-
-//    //Exibindo o botão 'Cancelar'
-//    document.getElementById("btn-cancel").style.display = "inline-block";
-
-//  }
-
-
-//  //Função para deletar franquias
-//  function deleteFranchise(id) {
-//    //Solicitação HTTP para deletar franquias
-//    fetch("http://localhost:3000/franquias/" + id, {method: "DELETE"})
-//      //Após a solicitação ser executada, a lista de franquias é atualizada com todos os franquias que possuem IDs diferentes do que foi passado no parâmetro
-//      .then(() => {
-//        franquias = franquias.filter((f) => f.id_franquia !== id);
-
-//        //Executando a função 'displayFranchises()' para a tabela ser carregada novamente com os dados atualizados
-//        displayFranchises();
-//      })
-//      .catch((err) => console.error("Erro: ", err));
-//  }
-
-//  //CADASTRAR OU ALTERAR franquias
-//  const forms = document.getElementById("forms");
-
-//  forms.addEventListener('submit', (event) => {
-//    const nome = document.getElementById("name-franchise").value;
-//    const endereco = document.getElementById("address-franchise").value;
-//    const fornecedor = document.getElementById("name-franchise-provider").value;
-
-//    if (!nome || !endereco || !fornecedor) {
-//      event.preventDefault();
-//    }
-
-//    else {
-//      //Coletando os valores do formulário
-//      const franquia = {
-//        nome: nome,
-//        endereco: endereco,
-//        fornecedor: fornecedor
-//      }
-
-//      if (franquiaEdicao) {
-//        //Se estiver editando a franquia
-//        fetch("http://localhost:3000/franquias/" + franquiaEdicao, {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify(franquia)})
-//          //Convertendo a 'response' para json
-//          .then((response) => response.json())
-//          //Manipulando os dados convertidos
-//          .then((data) => {
-//            //Procurando o index onde o ID do franquia for igual ao ID do 'franquiaEdicao' para atualizar todos os dados do franquia 
-//            const index = franquias.findIndex((f) => f.id_franquia === franquiaEdicao);
-//            franquias[index] = data;
-
-//            //Resetando o formulário
-//            document.getElementById("forms").reset();
-//            franquiaEdicao = null;
-//            document.getElementById("btn-cancel").style.display = "none";
-
-//            displayFranchises();
-//          })
-//          .catch((err) => console.error("Erro: ", err));
-//      }
-//      else {
-//        //Se for um novo franquia
-//        fetch("http://localhost:3000/franquias", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(franquia)})
-//          //Convertendo a 'response' para json
-//          .then((response) => response.json())
-//          //Manipulando os dados convertidos
-//          .then((data) => {
-//              //Adicionando os dados em 'franquias'
-//              franquias.push(data);
-
-//              //Resetando o formulário
-//              document.getElementById("forms").reset();
-
-//              //Chamando a função 'displayFranchises' para atualizar a tabela
-//              displayFranchises();
-//          })
-//          .catch((err) => console.error("Erro: ", err));
-//      }
-//    }
-//  })
-
-//  //CANCELAR
-//  const cancelBtn = document.getElementById("btn-cancel");
-//  //Se o usuário apertar o botão 'Cancelar':
-//  cancelBtn.addEventListener('click', () => {
-//    //A variável 'franquiaEdicao' volta a ser nula
-//    franquiaEdicao = null;
-//    //Os campos do formulário vão ser resetados
-//    document.getElementById("forms").reset();
-//    //Alterando a exibição do botão 'Cancelar' para 'none'
-//    cancelBtn.style.display = "none";
-//  })
-
-//  //Carregando franquias do servidor ao carregar a página com uma solicitação HTTP (solicitação GET)
-//  fetch("http://localhost:3000/franquias")
-//    //Convertendo a 'response' para json
-//    .then((response) => response.json())
-//    //Manipulando os dados convertidos
-//    .then((data) => {
-//      franquias = data;
-//      displayFranchises();
-//    })
-//    .catch((err) => console.error("Erro: ", err));
+  optionFranquia.disabled = true;
+  optionFranquia.selected = true;
+}

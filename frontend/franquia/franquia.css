@@ -103,6 +103,10 @@ a {
   font-family: "Pixelify Sans", sans-serif;
 }
 
+#select-franquia-fornecedor {
+  width: 200px;
+}
+
 .section-btn {
   text-align: center;
 }
@@ -121,7 +125,7 @@ a {
   background-color: #eeba7e;
 }
 
-#btn-cancel {
+#btn-franquia-cancelar {
   display: none;
 }
 
@@ -154,10 +158,6 @@ a {
   max-width: 75%;
   border-radius: 8px;
   background-color: white;
-}
-
-#name-franchise-provider {
-  width: 200px;
 }
 
 .td-buttons {

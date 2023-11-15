@@ -29,19 +29,19 @@
           <section id="forms-ingrediente">
             <div class="section-form">
               <label for="input-ingrediente-nome">Nome:</label>
-              <input type="text" id="input-ingrediente-nome" name="input-ingrediente-nome" maxlength="30" required>
+              <input type="text" id="input-ingrediente-nome" name="input-ingrediente-nome" maxlength="30">
             </div>
 
             <div class="section-form">
               <label for="select-ingrediente-tipo">Tipo:</label>
               <select id="select-ingrediente-tipo" name="select-ingrediente-tipo">
-                <option value="none" disabled selected>Selecione uma opção</option>
+                <option id="option-ingrediente-tipo" value="none" disabled selected>Selecione uma opção</option>
               </select>
             </div>
 
             <div class="section-btn">
               <button id="btn-ingrediente-cadastro" class="btn-register">Cadastrar</button>
-              <button id="btn-cancel" class="btn-register">Cancelar</button>
+              <button id="btn-ingrediente-cancelar" class="btn-register">Cancelar</button>
             </div>
           </section>
 
@@ -60,25 +60,8 @@
                 <th>Ações</th>
               </tr>
             </thead>
-            <tbody id="tbody">
-              <tr>
-                <td>1</td>
-                <td>Massa</td>
-                <td>1</td>
-                <td class="td-buttons">
-                  <button class="btn btn-outline-success" id="btn-update">Alterar</button>
-                  <button class="btn btn-outline-danger" id="btn-delete">Remover</button>
-                </td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>Molho</td>
-                <td>2</td>
-                <td class="td-buttons">
-                  <button class="btn btn-outline-success" id="btn-update">Alterar</button>
-                  <button class="btn btn-outline-danger" id="btn-delete">Remover</button>
-                </td>
-              </tr>
+            <tbody id="tbody-ingrediente">
+              
             </tbody>
           </table>
         </section>
